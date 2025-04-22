@@ -69,12 +69,12 @@ void* handleHttpResponse(void* arg) {
     if (received_bits > -1)
         buf[received_bits] = '\0';
     else {
-        close(client_fd);
+        //close(client_fd);
         return nullptr;
     }
     std::string request(buf);
     if (request.empty()) {
-        close(client_fd);
+       // close(client_fd);
         return nullptr;
     }
     http_request *req = new http_request(request);
