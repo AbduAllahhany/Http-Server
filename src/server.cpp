@@ -65,7 +65,7 @@ http_response* files(std::string fileName) {
     std::cout<<path<<std::endl;
     file = fopen(path. c_str(), "r");
     if (file == nullptr)
-        return ok();
+        return notfound();
     while (fgets(buffer, sizeof(buffer), file));
     fclose(file);
 
