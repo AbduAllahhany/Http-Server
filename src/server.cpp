@@ -20,6 +20,10 @@
 
 
 //end points
+
+std::string directory;
+
+
 http_response* echo(std::string s="")
 {
     std::unordered_map<std::string, std::string> header;
@@ -56,7 +60,7 @@ http_response* notfound()
 http_response* files(std::string fileName) {
     FILE *file;
     char buffer[256];
-    std::string path = fileName + ".txt";
+    std::string path = directory + fileName + ".txt";
     file = fopen(path. c_str(), "r");
     if (file == nullptr)
         return notfound();
@@ -130,6 +134,15 @@ int main(int argc, char** argv) {
     standard_end_points[NotFound] = notfound;
     header_end_points["user-agent"] = useragent;
     end_points["files"] = files;
+
+    for (int i = 1; i < argc; ++i) {
+        std::string arg = argv[i];
+
+        if (arg == "--directory" && i + 1 < argc) {
+            directory = argv[i + 1];
+            break;
+        }
+    }
 
     // Flush after every std::cout / std::cerr
     std::cout << std::unitbuf;
