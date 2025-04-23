@@ -61,6 +61,7 @@ http_response* files(std::string fileName) {
     FILE *file;
     char buffer[256];
     std::string path = directory + fileName + ".txt";
+    std::cout<<path<<std::endl;
     file = fopen(path. c_str(), "r");
     if (file == nullptr)
         return notfound();
@@ -143,7 +144,6 @@ int main(int argc, char** argv) {
             break;
         }
     }
-    std::cout<<"d ->> "<<directory<<std::endl;
 
     // Flush after every std::cout / std::cerr
     std::cout << std::unitbuf;
