@@ -56,7 +56,7 @@ http_response* notfound()
 http_response* files(std::string fileName) {
     FILE *file;
     char buffer[256];
-    std::string path = "tmp/" + fileName + ".txt";
+    std::string path = fileName + ".txt";
     file = fopen(path. c_str(), "r");
     if (file == nullptr)
         return notfound();
