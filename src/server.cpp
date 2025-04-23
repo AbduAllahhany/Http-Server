@@ -122,7 +122,7 @@ void* handleHttpResponse(void* arg) {
     auto temp = res->construct_response();
     const char *response_message = temp.c_str();
     int bytes_sent = send(client_fd, response_message, strlen(response_message), 0);
-    close(client_fd);
+    //close(client_fd);
     return nullptr;
 }
 
