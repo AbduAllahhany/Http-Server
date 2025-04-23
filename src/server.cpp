@@ -62,7 +62,7 @@ http_response* files(std::string fileName) {
     FILE *file;
     char buffer[256];
     std::string path = directory + fileName;
-    if (access(path.c_str(), F_OK) == 0) {
+    if (access(path.c_str(), F_OK) == 0)
         std::cout<<"exist"<<std::endl;;
 
     std::cout<<path<<std::endl;
