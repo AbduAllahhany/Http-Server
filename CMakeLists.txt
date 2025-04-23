@@ -10,6 +10,12 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 find_package(ZLIB REQUIRED)
 
-add_executable(server ${SOURCE_FILES})
+add_executable(server ${SOURCE_FILES}
+        src/http_request.cpp
+        src/http_request.h
+        src/http_response.cpp
+        src/http_response.h
+        src/helper_function.h
+        src/helper_function.cpp)
 
 target_link_libraries(server PRIVATE Threads::Threads ZLIB::ZLIB)
