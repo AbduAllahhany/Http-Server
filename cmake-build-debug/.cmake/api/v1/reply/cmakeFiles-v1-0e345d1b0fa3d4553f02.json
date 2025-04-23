@@ -823,8 +823,8 @@
 	"kind" : "cmakeFiles",
 	"paths" : 
 	{
-		"build" : "/mnt/d/Eduaction/CS/Http Server/New folder/codecrafters-http-server-cpp/cmake-build-debug",
-		"source" : "/mnt/d/Eduaction/CS/Http Server/New folder/codecrafters-http-server-cpp"
+		"build" : "/mnt/d/Eduaction/CS/Http Server/Http Server/cmake-build-debug",
+		"source" : "/mnt/d/Eduaction/CS/Http Server/Http Server"
 	},
 	"version" : 
 	{

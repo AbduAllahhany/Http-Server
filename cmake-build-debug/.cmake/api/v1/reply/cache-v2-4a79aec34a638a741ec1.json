@@ -55,7 +55,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/mnt/d/Eduaction/CS/Http Server/codecrafters-http-server-cpp/cmake-build-debug"
+			"value" : "/mnt/d/Eduaction/CS/Http Server/Http Server/cmake-build-debug"
 		},
 		{
 			"name" : "CMAKE_CACHE_MAJOR_VERSION",
@@ -559,7 +559,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "/mnt/d/Eduaction/CS/Http Server/codecrafters-http-server-cpp/cmake-build-debug/CMakeFiles/pkgRedirects"
+			"value" : "/mnt/d/Eduaction/CS/Http Server/Http Server/cmake-build-debug/CMakeFiles/pkgRedirects"
 		},
 		{
 			"name" : "CMAKE_GENERATOR",
@@ -631,7 +631,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/mnt/d/Eduaction/CS/Http Server/codecrafters-http-server-cpp"
+			"value" : "/mnt/d/Eduaction/CS/Http Server/Http Server"
 		},
 		{
 			"name" : "CMAKE_INSTALL_PREFIX",
@@ -1267,7 +1267,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "/mnt/d/Eduaction/CS/Http Server/codecrafters-http-server-cpp/cmake-build-debug"
+			"value" : "/mnt/d/Eduaction/CS/Http Server/Http Server/cmake-build-debug"
 		},
 		{
 			"name" : "http-server-starter-cpp_IS_TOP_LEVEL",
@@ -1291,7 +1291,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "/mnt/d/Eduaction/CS/Http Server/codecrafters-http-server-cpp"
+			"value" : "/mnt/d/Eduaction/CS/Http Server/Http Server"
 		}
 	],
 	"kind" : "cache",
