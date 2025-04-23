@@ -60,11 +60,11 @@ http_response* notfound()
 http_response* files(std::string fileName) {
     FILE *file;
     char buffer[256];
-    std::string path = ".." + directory + fileName + ".txt";
+    std::string path = directory + fileName + ".txt";
     std::cout<<path<<std::endl;
     file = fopen(path. c_str(), "r");
     if (file == nullptr)
-        return notfound();
+        return ok();
     while (fgets(buffer, sizeof(buffer), file));
     fclose(file);
 
