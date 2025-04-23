@@ -1,6 +1,5 @@
 #include <algorithm>
 #include <iostream>
-#include <cstdlib>
 #include <string>
 #include <cstring>
 #include <fstream>
@@ -8,9 +7,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
-#include <netdb.h>
 #include "helper_function.h"
-
 #include "http_request.h"
 #include "http_response.h"
 
@@ -56,7 +53,7 @@ http_response* notfound()
     res->status_code = status_code[404];
     return res;
 }
-
+//Get method
 http_response* files(std::string fileName) {
     FILE *file;
     char buffer[256];
@@ -65,6 +62,7 @@ http_response* files(std::string fileName) {
     file = fopen(path. c_str(), "r");
     if (file == nullptr)
         return notfound();
+
     while (fgets(buffer, sizeof(buffer), file));
     fclose(file);
 
@@ -80,7 +78,26 @@ http_response* files(std::string fileName) {
     return res;
 }
 
-std::unordered_map<std::string, http_response*(*)(std::string)> end_points;
+//Post method
+http_response* files(std::string fileName,std::string body) {
+    FILE *file;
+    char buffer[256];
+
+    std::string path = directory + fileName;
+    file = fopen(path. c_str(), "w");
+    fprintf(file, "%s", body.c_str());
+    fclose(file);
+
+
+    auto res = new http_response;
+    res->version = HTTP_VERSION;
+    res->status_code = status_code[201];
+    return res;
+}
+
+
+std::unordered_map<std::string, http_response*(*)(std::string)> get_end_points;
+std::unordered_map<std::string, http_response*(*)(std::string,std::string)> post_end_points;
 std::unordered_map<std::string, http_response*(*)()> standard_end_points;
 std::unordered_map<std::string, http_response*(*)(std::string)> header_end_points;
 
@@ -94,18 +111,20 @@ void* handleHttpResponse(void* arg) {
     if (received_bits > 1)
         buf[received_bits] = '\0';
     else {
-        //close(client_fd);
+        //Persistent connections are the default.
+        close(client_fd);
         return nullptr;
     }
     std::string request(buf);
     if (request.empty()) {
-        //close(client_fd);
+        //Persistent connections are the default.
+        close(client_fd);
         return nullptr;
     }
     http_request *req = new http_request(request);
     http_response *res = standard_end_points[NotFound]();;
 
-    ///
+    ///to be refactor
     if (req->URL.size() == 0) {
         res = standard_end_points[Ok]();
     } else if (req->URL.size() == 1) {
@@ -115,14 +134,21 @@ void* handleHttpResponse(void* arg) {
             res = header_end_points[tolower(req->URL[0])](req->request_header[req->URL[0]]);
         else
             res = standard_end_points[NotFound]();
-    } else if (end_points.contains(tolower(req->URL[0]))) {
-        res = end_points[tolower(req->URL[0])](req->URL[1]);
+    } else if (get_end_points.contains(tolower(req->URL[0])) && req->method == GET) {
+        res = get_end_points[tolower(req->URL[0])](req->URL[1]);
     }
-    //
+    else if (post_end_points.contains(tolower(req->URL[0])) && req->method == POST){
+        res = post_end_points[tolower(req->URL[0])](req->URL[1],req->body);
+    }
+
     auto temp = res->construct_response();
     const char *response_message = temp.c_str();
     int bytes_sent = send(client_fd, response_message, strlen(response_message), 0);
-    //close(client_fd);
+
+    //Persistent connections are the default.
+    //implement Persistent connections time timeout
+
+    close(client_fd);
     return nullptr;
 }
 
@@ -130,11 +156,13 @@ void* handleHttpResponse(void* arg) {
 
 int main(int argc, char** argv) {
     //initialization
-    end_points["echo"] = echo;
+    get_end_points["echo"] = echo;
     standard_end_points[Ok] = ok;
     standard_end_points[NotFound] = notfound;
     header_end_points["user-agent"] = useragent;
-    end_points["files"] = files;
+
+    get_end_points["files"] = (http_response*(*)(std::string))files;
+    post_end_points["files"] = (http_response*(*)(std::string,std::string))files;
 
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];

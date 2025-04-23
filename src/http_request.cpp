@@ -1,5 +1,7 @@
 
 #include "http_request.h"
+#include "helper_function.h"
+
 
 // helper function
 std::vector< std::string > split(const std::string &str,
@@ -41,7 +43,7 @@ void http_request::extract_data(std::string url)
     std::string  body    = url.substr(body_pos+4);
     std::vector< std::string > start_line   = split(request[0], " ");
 
-    this->version                       = start_line[0];
+    this->method                        = httpMethod(start_line[0]);
     this->URL                           = split(start_line[1], "/");
     this->version                       = start_line[2];
 

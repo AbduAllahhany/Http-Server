@@ -1,10 +1,10 @@
 #ifndef HTTP_REQUEST_H
+
 #define HTTP_REQUEST_H
 #include <map>
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include "helper_function.h"
 
 
 enum http_method
@@ -14,7 +14,8 @@ enum http_method
     OPTION,
     PUT,
     DELETE,
-    PATCH
+    PATCH,
+    UNKNOWN
 };
 
 class http_request

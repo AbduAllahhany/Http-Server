@@ -1,6 +1,4 @@
-//
-// Created by Honey on 4/12/2025.
-//
+
 
 #ifndef HTTP_RESPONSE_H
 #define HTTP_RESPONSE_H

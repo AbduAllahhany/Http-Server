@@ -4,8 +4,11 @@
 
 #ifndef HELPER_FUNCTION_H
 #define HELPER_FUNCTION_H
-#include <string>
+#include "http_request.h"
 #include <algorithm>
 
 extern std::string tolower(const std::string& input);
+
+extern http_method httpMethod(const std::string& methodStr);
+
 #endif //HELPER_FUNCTION_H
