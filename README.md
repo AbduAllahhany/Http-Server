@@ -1,4 +1,4 @@
-##🚀 Simple HTTP Server
+## 🚀 Simple HTTP Server
 
 A lightweight and efficient HTTP server written in C++ designed for learning, experimenting, and basic web serving needs. This project demonstrates how to build a basic server from scratch, including request handling, routing, and response generation.
 
