@@ -57,14 +57,10 @@ http_response* notfound()
     return res;
 }
 
-#include <unistd.h>
 http_response* files(std::string fileName) {
     FILE *file;
     char buffer[256];
     std::string path = directory + fileName;
-    if (access(path.c_str(), F_OK) == 0)
-        std::cout<<"exist"<<std::endl;;
-
     std::cout<<path<<std::endl;
     file = fopen(path. c_str(), "r");
     if (file == nullptr)
@@ -98,12 +94,12 @@ void* handleHttpResponse(void* arg) {
     if (received_bits > 1)
         buf[received_bits] = '\0';
     else {
-        close(client_fd);
+        //close(client_fd);
         return nullptr;
     }
     std::string request(buf);
     if (request.empty()) {
-        close(client_fd);
+        //close(client_fd);
         return nullptr;
     }
     http_request *req = new http_request(request);
@@ -188,7 +184,6 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    int cnt = 0;
     while (1) {
         pthread_t thread;
         sockaddr_in client_addr;
@@ -196,8 +191,7 @@ int main(int argc, char** argv) {
         std::cout << "Waiting for a client to connect...\n";
         int client_fd = accept(server_fd, (sockaddr *) &client_addr, (socklen_t *) &client_addr_len);
         std::cout << "Client connected\n";
-        cnt++;
-        std::cout << cnt << std::endl;
+
         pthread_create(&thread, nullptr, handleHttpResponse, &client_fd);
         pthread_detach(thread);
     }
