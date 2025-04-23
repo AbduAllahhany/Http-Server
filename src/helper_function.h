@@ -14,5 +14,5 @@ extern http_method httpMethod(const std::string& methodStr);
 
 extern std::vector< std::string > split(const std::string &str,
                                  const std::string &delimiters,
-                                 bool keepEmpty)
+                                 bool keepEmpty=false);
 #endif //HELPER_FUNCTION_H
