@@ -143,6 +143,7 @@ int main(int argc, char** argv) {
             break;
         }
     }
+    std::cout<<"d ->> "<<directory<<std::endl;
 
     // Flush after every std::cout / std::cerr
     std::cout << std::unitbuf;
