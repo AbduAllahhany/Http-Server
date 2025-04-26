@@ -21,25 +21,3 @@ http_method httpMethod(const std::string& methodStr) {
     auto it = httpMethodMap.find(tolower(methodStr));
     return (it != httpMethodMap.end()) ? it->second : http_method::UNKNOWN;
 }
-std::vector< std::string > split(const std::string &str,
-                                 const std::string &delimiters,
-                                 bool keepEmpty) {
-    std::vector< std::string > tokens;
-    std::string::size_type pos  = 0;
-    std::string::size_type prev = 0;
-
-    while ((pos = str.find_first_of(delimiters, prev)) != std::string::npos) {
-        if (keepEmpty || pos > prev) {
-            tokens.push_back(str.substr(prev, pos - prev));
-        }
-        prev = pos + 1;
-    }
-
-    if (prev < str.length()) {
-        tokens.push_back(str.substr(prev));
-    } else if (keepEmpty && prev == str.length()) {
-        tokens.push_back("");
-    }
-    return tokens;
-}
-

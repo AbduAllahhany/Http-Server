@@ -1,15 +1,15 @@
-#include <algorithm>
-#include <iostream>
-#include <string>
-#include <cstring>
-#include <fstream>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
 #include "helper_function.h"
 #include "http_request.h"
 #include "http_response.h"
+#include <algorithm>
+#include <arpa/inet.h>
+#include <cstring>
+#include <fstream>
+#include <iostream>
+#include <string>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #define HTTP_VERSION "HTTP/1.1"
 #define Ok "Ok"
@@ -21,8 +21,7 @@
 std::string directory;
 
 
-http_response* echo(std::string s="")
-{
+http_response *echo(std::string s = "") {
     std::unordered_map<std::string, std::string> header;
     header["Content-Length"] = std::to_string(s.size());
     header["Content-Type"] = "text/plain";
@@ -34,36 +33,36 @@ http_response* echo(std::string s="")
     return res;
 }
 
-http_response* useragent(std::string header)
-{
+http_response *useragent(std::string header) {
     return echo(header);
 }
 
-http_response* ok()
-{
+http_response *ok() {
     auto res = new http_response;
     res->version = HTTP_VERSION;
     res->status_code = status_code[200];
+    res->response_header["Content-Length"] = "0";
     return res;
 }
-http_response* notfound()
-{
+http_response *notfound() {
     auto res = new http_response;
     res->version = HTTP_VERSION;
     res->status_code = status_code[404];
+    res->response_header["Content-Length"] = "0";
     return res;
 }
 //Get method
-http_response* files(std::string fileName) {
+http_response *files(std::string fileName) {
     FILE *file;
     char buffer[256];
     std::string path = directory + fileName;
-    std::cout<<path<<std::endl;
-    file = fopen(path. c_str(), "r");
+    std::cout << path << std::endl;
+    file = fopen(path.c_str(), "r");
     if (file == nullptr)
         return notfound();
 
-    while (fgets(buffer, sizeof(buffer), file));
+    while (fgets(buffer, sizeof(buffer), file))
+        ;
     fclose(file);
 
     std::string fileText(buffer);
@@ -79,12 +78,12 @@ http_response* files(std::string fileName) {
 }
 
 //Post method
-http_response* files(std::string fileName,std::string body) {
+http_response *files(std::string fileName, std::string body) {
     FILE *file;
     char buffer[256];
 
     std::string path = directory + fileName;
-    file = fopen(path. c_str(), "w");
+    file = fopen(path.c_str(), "w");
     fprintf(file, "%s", body.c_str());
     fclose(file);
 
@@ -96,73 +95,74 @@ http_response* files(std::string fileName,std::string body) {
 }
 
 
-std::unordered_map<std::string, http_response*(*)(std::string)> get_end_points;
-std::unordered_map<std::string, http_response*(*)(std::string,std::string)> post_end_points;
-std::unordered_map<std::string, http_response*(*)()> standard_end_points;
-std::unordered_map<std::string, http_response*(*)(std::string)> header_end_points;
+std::unordered_map<std::string, http_response *(*) (std::string)> get_end_points;
+std::unordered_map<std::string, http_response *(*) (std::string, std::string)> post_end_points;
+std::unordered_map<std::string, http_response *(*) ()> standard_end_points;
+std::unordered_map<std::string, http_response *(*) (std::string)> header_end_points;
 
 
+void *handleHttpResponse(void *arg) {
 
-void* handleHttpResponse(void* arg) {
-    char buf[1024];
+    int timeout = 1000;
     int client_fd = *(int *) arg;
-
-    ssize_t received_bits = recv(client_fd, buf, sizeof(buf) - 1, 0);
-    if (received_bits > 1)
-        buf[received_bits] = '\0';
-    else {
-        //Persistent connections are the default.
-        close(client_fd);
-        return nullptr;
-    }
-    std::string request(buf);
-    if (request.empty()) {
-        //Persistent connections are the default.
-        close(client_fd);
-        return nullptr;
-    }
-    http_request *req = new http_request(request);
-    http_response *res = standard_end_points[NotFound]();;
-
-    ///to be refactor
-    if (req->URL.size() == 0) {
-        res = standard_end_points[Ok]();
-    } else if (req->URL.size() == 1) {
-        if (tolower(req->URL[0]) == "index.html")
+    char buf[1024];
+    while (true) {
+        ssize_t received_bits = recv(client_fd, buf, sizeof(buf) - 1, 0);
+        if (received_bits <= 0) {
+            std::cout<<"test"<<std::endl;
+            close(client_fd);
+            break;
+        }
+        std::string request(buf);
+        http_request *req = new http_request(request);
+        http_response *res = standard_end_points[NotFound]();
+        ///to be refactor
+        if (req->URL.size() == 0) {
             res = standard_end_points[Ok]();
-        else if (header_end_points.contains(tolower(req->URL[0])))
-            res = header_end_points[tolower(req->URL[0])](req->request_header[req->URL[0]]);
-        else
-            res = standard_end_points[NotFound]();
-    } else if (get_end_points.contains(tolower(req->URL[0])) && req->method == GET) {
-        res = get_end_points[tolower(req->URL[0])](req->URL[1]);
+        } else if (req->URL.size() == 1) {
+            if (tolower(req->URL[0]) == "index.html")
+                res = standard_end_points[Ok]();
+            else if (header_end_points.contains(tolower(req->URL[0])))
+                res = header_end_points[tolower(req->URL[0])](req->request_header[req->URL[0]]);
+            else
+                res = standard_end_points[NotFound]();
+        } else if (get_end_points.contains(tolower(req->URL[0])) && req->method == GET) {
+            res = get_end_points[tolower(req->URL[0])](req->URL[1]);
+        } else if (post_end_points.contains(tolower(req->URL[0])) && req->method == POST) {
+            res = post_end_points[tolower(req->URL[0])](req->URL[1], req->body);
+        }
+
+        if (req->request_header["connection"] == "close") {
+            res->response_header["Connection"] = "close";
+        }
+        auto temp = res->construct_response();
+        const char *response_message = temp.c_str();
+        int sent_bits = send(client_fd, response_message, strlen(response_message), 0);
+
+        if (sent_bits <= 0) {
+            close(client_fd);
+            break;
+        }
+
+        if (req->request_header["connection"] == "close") {
+            close(client_fd);
+            break;
+        }
+        memset(buf, 0, sizeof(buf));// Set all elements to 0
     }
-    else if (post_end_points.contains(tolower(req->URL[0])) && req->method == POST){
-        res = post_end_points[tolower(req->URL[0])](req->URL[1],req->body);
-    }
-
-    auto temp = res->construct_response();
-    const char *response_message = temp.c_str();
-    int bytes_sent = send(client_fd, response_message, strlen(response_message), 0);
-
-    //Persistent connections are the default.
-    //implement Persistent connections time timeout
-
-    close(client_fd);
+    //close(client_fd);
     return nullptr;
 }
 
-
-
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
     //initialization
     get_end_points["echo"] = echo;
     standard_end_points[Ok] = ok;
     standard_end_points[NotFound] = notfound;
     header_end_points["user-agent"] = useragent;
 
-    get_end_points["files"] = (http_response*(*)(std::string))files;
-    post_end_points["files"] = (http_response*(*)(std::string,std::string))files;
+    get_end_points["files"] = (http_response * (*) (std::string)) files;
+    post_end_points["files"] = (http_response * (*) (std::string, std::string)) files;
 
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
@@ -215,11 +215,14 @@ int main(int argc, char** argv) {
     while (1) {
         pthread_t thread;
         sockaddr_in client_addr;
+
         socklen_t client_addr_len = sizeof(client_addr);
         std::cout << "Waiting for a client to connect...\n";
         int client_fd = accept(server_fd, (sockaddr *) &client_addr, (socklen_t *) &client_addr_len);
         std::cout << "Client connected\n";
 
+        //epoll()
+        //to be refactored
         pthread_create(&thread, nullptr, handleHttpResponse, &client_fd);
         pthread_detach(thread);
     }

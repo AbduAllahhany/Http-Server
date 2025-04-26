@@ -4,6 +4,27 @@
 
 
 // helper function
+std::vector< std::string > split(const std::string &str,
+                                 const std::string &delimiters,
+                                 bool keepEmpty = false) {
+    std::vector< std::string > tokens;
+    std::string::size_type pos  = 0;
+    std::string::size_type prev = 0;
+
+    while ((pos = str.find_first_of(delimiters, prev)) != std::string::npos) {
+        if (keepEmpty || pos > prev) {
+            tokens.push_back(str.substr(prev, pos - prev));
+        }
+        prev = pos + 1;
+    }
+
+    if (prev < str.length()) {
+        tokens.push_back(str.substr(prev));
+    } else if (keepEmpty && prev == str.length()) {
+        tokens.push_back("");
+    }
+    return tokens;
+}
 
 
 http_request::http_request(std::string url)
