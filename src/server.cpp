@@ -4,23 +4,30 @@
 #include <algorithm>
 #include <arpa/inet.h>
 #include <cstring>
-#include <fstream>
 #include <iostream>
 #include <string>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
-
 #define HTTP_VERSION "HTTP/1.1"
 #define Ok "Ok"
 #define NotFound "Not Found"
 
 
-//end points
+/*
+ * to be done
+ * a) use epoll
+ * b) remove blocking i/o
+ */
 
 std::string directory;
 
+std::unordered_map<std::string, http_response *(*) (std::string)> get_end_points;
+std::unordered_map<std::string, http_response *(*) (std::string, std::string)> post_end_points;
+std::unordered_map<std::string, http_response *(*) ()> standard_end_points;
+std::unordered_map<std::string, http_response *(*) (std::string)> header_end_points;
 
+//end points
 http_response *echo(std::string s = "") {
     std::unordered_map<std::string, std::string> header;
     header["Content-Length"] = std::to_string(s.size());
@@ -60,12 +67,12 @@ http_response *files(std::string fileName) {
     file = fopen(path.c_str(), "r");
     if (file == nullptr)
         return notfound();
-
-    while (fgets(buffer, sizeof(buffer), file))
-        ;
+    std::string fileText;
+    size_t bytesRead;
+    while ((bytesRead = fread(buffer, 1, sizeof(buffer), file)) > 0) {
+        fileText.append(buffer, bytesRead);
+    }
     fclose(file);
-
-    std::string fileText(buffer);
     std::unordered_map<std::string, std::string> header;
     header["Content-Length"] = std::to_string(fileText.size());
     header["Content-Type"] = "application/octet-stream";
@@ -79,12 +86,15 @@ http_response *files(std::string fileName) {
 
 //Post method
 http_response *files(std::string fileName, std::string body) {
+    if (fileName.find("..") != std::string::npos || fileName.find('/') != std::string::npos) {
+        return notfound();
+    }
     FILE *file;
     char buffer[256];
 
     std::string path = directory + fileName;
     file = fopen(path.c_str(), "w");
-    fprintf(file, "%s", body.c_str());
+    fwrite(body.c_str(), 1, body.size(), file);
     fclose(file);
 
 
@@ -94,22 +104,16 @@ http_response *files(std::string fileName, std::string body) {
     return res;
 }
 
-
-std::unordered_map<std::string, http_response *(*) (std::string)> get_end_points;
-std::unordered_map<std::string, http_response *(*) (std::string, std::string)> post_end_points;
-std::unordered_map<std::string, http_response *(*) ()> standard_end_points;
-std::unordered_map<std::string, http_response *(*) (std::string)> header_end_points;
-
-
 void *handleHttpResponse(void *arg) {
 
     int timeout = 1000;
     int client_fd = *(int *) arg;
+    delete (int *) arg; // Free after copying
     char buf[1024];
     while (true) {
         ssize_t received_bits = recv(client_fd, buf, sizeof(buf) - 1, 0);
         if (received_bits <= 0) {
-            std::cout<<"test"<<std::endl;
+            std::cout << "test" << std::endl;
             close(client_fd);
             break;
         }
@@ -137,7 +141,7 @@ void *handleHttpResponse(void *arg) {
         }
         auto temp = res->construct_response();
         const char *response_message = temp.c_str();
-        int sent_bits = send(client_fd, response_message, strlen(response_message), 0);
+        int sent_bits = send(client_fd, response_message, temp.size(), 0);
 
         if (sent_bits <= 0) {
             close(client_fd);
@@ -149,6 +153,8 @@ void *handleHttpResponse(void *arg) {
             break;
         }
         memset(buf, 0, sizeof(buf));// Set all elements to 0
+        delete req;
+        delete res;
     }
     //close(client_fd);
     return nullptr;
@@ -160,10 +166,8 @@ int main(int argc, char **argv) {
     standard_end_points[Ok] = ok;
     standard_end_points[NotFound] = notfound;
     header_end_points["user-agent"] = useragent;
-
     get_end_points["files"] = (http_response * (*) (std::string)) files;
     post_end_points["files"] = (http_response * (*) (std::string, std::string)) files;
-
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
 
@@ -223,7 +227,12 @@ int main(int argc, char **argv) {
 
         //epoll()
         //to be refactored
-        pthread_create(&thread, nullptr, handleHttpResponse, &client_fd);
+        int *pclient = new int(client_fd);
+        if (pthread_create(&thread, nullptr, handleHttpResponse, pclient) != 0) {
+            std::cerr << "Failed to create thread\n";
+            close(*pclient);
+            delete pclient;
+        }
         pthread_detach(thread);
     }
     close(server_fd);
